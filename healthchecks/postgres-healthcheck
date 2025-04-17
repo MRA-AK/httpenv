@@ -1,0 +1,27 @@
+#!/bin/bash
+set -eo pipefail
+
+echo "**** Running health check ****" >&2
+
+host="$(hostname -i || echo '127.0.0.1')"
+user="${POSTGRES_USER:-postgres}"
+db="${POSTGRES_DB:-$POSTGRES_USER}"
+export PGPASSWORD="${POSTGRES_PASSWORD:-}"
+
+echo "**** Running health check on host: $host, user: $user, db: $db ****"
+
+args=(
+	# force postgres to not use the local unix socket (test "external" connectibility)
+	--host "$host"
+	--username "$user"
+	--dbname "$db"
+	--quiet --no-align --tuples-only
+)
+
+if select="$(echo 'SELECT 1' | psql "${args[@]}")" && [ "$select" = '1' ]; then
+    echo "**** Health check passed. ****"
+	exit 0
+else
+    echo "Health check failed."
+    exit 1
+fi

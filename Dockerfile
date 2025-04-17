@@ -8,6 +8,7 @@ FROM builder AS test
 
 # Stage 3: Final image
 FROM alpine
+RUN apk add --no-cache curl
 RUN addgroup -g 1000 httpenv \
     && adduser -u 1000 -G httpenv -D httpenv
 COPY --from=builder --chown=httpenv:httpenv /go/httpenv /httpenv
